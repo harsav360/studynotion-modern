@@ -3,6 +3,7 @@ package com.studynotion_modern.backend.entities;
 import java.util.Date;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -10,16 +11,18 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "user")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
     @Id
-    private String id;
+    private ObjectId id;
 
     private String firstName;
     private String lastName;

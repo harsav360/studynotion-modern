@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Random;
 
 import java.util.Optional;
+
+import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -130,7 +132,7 @@ public class AuthController {
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequestDto changePasswordRequestDto,
             @RequestHeader("userId") String userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
+        Optional<User> userOpt = userRepository.findById(new ObjectId(userId));
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(401).body(new ApiResponseDto(false, "User not found"));
         }

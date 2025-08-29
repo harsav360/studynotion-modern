@@ -1,23 +1,26 @@
 package com.studynotion_modern.backend.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "course")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Course {
     @Id
-    private String id;
+    private ObjectId id;
 
     private String courseName;
     private String courseDescription;
@@ -48,5 +51,5 @@ public class Course {
 
     private String status; // Draft or Published
 
-    private Date createdAt = new Date();
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

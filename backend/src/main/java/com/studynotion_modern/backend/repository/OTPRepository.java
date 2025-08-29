@@ -2,11 +2,12 @@ package com.studynotion_modern.backend.repository;
 
 import java.util.Optional;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.studynotion_modern.backend.entities.OTP;
 
-public interface OTPRepository extends MongoRepository<OTP, String> {
+public interface OTPRepository extends MongoRepository<OTP, ObjectId> {
 
     Optional<OTP> findByOtp(String otp);
 
