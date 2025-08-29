@@ -4,6 +4,8 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.studynotion_modern.backend.entities.SubSection;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface SubSectionRepository extends MongoRepository<SubSection, ObjectId> {
 }

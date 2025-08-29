@@ -4,7 +4,9 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.studynotion_modern.backend.entities.CourseProgress;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CourseProgressRepository extends MongoRepository<CourseProgress, ObjectId> {
     CourseProgress findByCourseIdAndUserId(ObjectId courseId, ObjectId userId);
 }

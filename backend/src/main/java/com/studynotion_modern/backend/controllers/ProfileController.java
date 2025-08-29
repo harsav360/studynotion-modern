@@ -1,5 +1,10 @@
 package com.studynotion_modern.backend.controllers;
 
+import com.studynotion_modern.backend.dtos.ResetPasswordRequestDto;
+import com.studynotion_modern.backend.dtos.ResetPasswordTokenRequestDto;
+import com.studynotion_modern.backend.dtos.UserDto;
+import com.studynotion_modern.backend.service.AuthService;
+import com.studynotion_modern.backend.service.ProfileServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +24,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProfileController {
 
-    private final ProfileService profileService;
+    private final ProfileServiceImpl profileService;
+    private final AuthService authService;
 
     @PutMapping("/update")
     public ResponseEntity<?> updateProfile(@RequestBody UserDto dto, HttpServletRequest request) {
@@ -53,12 +59,12 @@ public class ProfileController {
     }
 
     @PostMapping("/reset-password-token")
-    public ResponseEntity<?> sendResetPasswordToken(@RequestBody ResetPasswordTokenRequest request) {
+    public ResponseEntity<?> sendResetPasswordToken(@RequestBody ResetPasswordTokenRequestDto request) {
         return authService.sendResetPasswordToken(request);
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
         return authService.resetPassword(request);
     }
 }

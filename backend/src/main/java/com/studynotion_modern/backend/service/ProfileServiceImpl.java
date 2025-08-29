@@ -1,5 +1,6 @@
 package com.studynotion_modern.backend.service;
 
+import com.studynotion_modern.backend.dtos.UserDto;
 import com.studynotion_modern.backend.entities.Course;
 import com.studynotion_modern.backend.entities.Profile;
 import com.studynotion_modern.backend.entities.User;
@@ -10,6 +11,7 @@ import com.studynotion_modern.backend.repository.UserRepository;
 import com.studynotion_modern.backend.utils.DurationUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +34,7 @@ public class ProfileServiceImpl {
 
 
     public ResponseEntity<?> updateProfile(UserDto dto, HttpServletRequest request) {
-        String userId = request.getUserPrincipal().getName();
+        ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty())

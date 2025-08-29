@@ -1,5 +1,18 @@
 package com.studynotion_modern.backend.service;
 
+import com.studynotion_modern.backend.entities.Course;
+import com.studynotion_modern.backend.repository.CourseProgressRepository;
+import com.studynotion_modern.backend.repository.CourseRepository;
+import com.studynotion_modern.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService {

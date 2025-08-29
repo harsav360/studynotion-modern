@@ -1,5 +1,6 @@
 package com.studynotion_modern.backend.controllers;
 
+import com.studynotion_modern.backend.dtos.RatingRequestDto;
 import com.studynotion_modern.backend.service.RatingReviewService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +15,12 @@ public class RatingReviewController {
     private final RatingReviewService ratingReviewService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createRating(@RequestBody RatingRequest request, HttpServletRequest servletRequest) {
+    public ResponseEntity<?> createRating(@RequestBody RatingRequestDto request, HttpServletRequest servletRequest) {
         return ratingReviewService.createRating(request, servletRequest);
     }
 
     @PostMapping("/average")
-    public ResponseEntity<?> getAverageRating(@RequestBody RatingRequest request) {
+    public ResponseEntity<?> getAverageRating(@RequestBody RatingRequestDto request) {
         return ratingReviewService.getAverageRating(request.getCourseId());
     }
 
