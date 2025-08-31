@@ -77,4 +77,32 @@ public class EmailTemplates {
         </html>
         """.formatted(otp);
     }
+
+    public static String paymentSuccessEmail(String fullName, double amount, String orderId, String paymentId) {
+        return """
+        <html>
+        <body>
+            <h2>Payment Successful</h2>
+            <p>Dear %s,</p>
+            <p>Your payment of INR %.2f has been received.</p>
+            <p>Order ID: %s</p>
+            <p>Payment ID: %s</p>
+            <p>Thank you for your purchase!</p>
+        </body>
+        </html>
+        """.formatted(fullName, amount, orderId, paymentId);
+    }
+
+    public static String courseEnrollmentEmail(String courseName, String fullName) {
+        return """
+        <html>
+        <body>
+            <h2>Enrollment Successful</h2>
+            <p>Dear %s,</p>
+            <p>You have been successfully enrolled in the course: <b>%s</b>.</p>
+            <p>We wish you a great learning experience!</p>
+        </body>
+        </html>
+        """.formatted(fullName, courseName);
+    }
 }
