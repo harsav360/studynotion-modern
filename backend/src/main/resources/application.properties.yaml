@@ -19,11 +19,16 @@ spring:
           auth: true
           starttls:
             enable: true
+
 cloudinary:
-  cloud_name: ${CLOUD_NAME}
-  api_key: ${API_KEY}
-  api_secret: ${API_SECRET}
+  cloud_name: ${CLOUD_NAME:demo-cloud}
+  api_key: ${API_KEY:demo-key}
+  api_secret: ${API_SECRET:demo-secret}
 
 jwt:
   secret: "${JWT_SECRET:myVerySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm2024SecureTokenGeneration}"
   expiration: 86400000
+
+razorpay:
+  key: ${RAZORPAY_KEY:your_razorpay_key}
+  secret: ${RAZORPAY_SECRET:your_razorpay_secret}
