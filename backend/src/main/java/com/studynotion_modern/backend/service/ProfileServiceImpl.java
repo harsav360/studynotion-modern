@@ -16,11 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,15 +30,14 @@ public class ProfileServiceImpl {
     private final ProfileRepository profileRepository;
     private final CourseRepository courseRepository;
     private final CourseProgressRepository courseProgressRepository;
-    private final CloudinaryUtils cloudinaryUtils;
+    private final CloudinaryService cloudinaryService;
 
-
-    public ResponseEntity<?> updateProfile(UserDto dto, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> updateProfile(UserDto dto, HttpServletRequest request) {
         ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty())
-            return ResponseEntity.badRequest().body("User not found");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "User not found"));
 
         User user = userOpt.get();
         Profile profile = profileRepository.findById(user.getAdditionalDetails().getId())
@@ -54,15 +53,15 @@ public class ProfileServiceImpl {
         profile.setGender(dto.getGender());
         profileRepository.save(profile);
 
+        User updatedUser = userRepository.findById(userId).orElseThrow();
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Profile updated successfully",
-                "updatedUserDetails", userRepository.findById(userId).get()));
+                "updatedUserDetails", updatedUser));
     }
 
-
-    public ResponseEntity<?> deleteAccount(HttpServletRequest request) {
-        String userId = request.getUserPrincipal().getName();
+    public ResponseEntity<Map<String, Object>> deleteAccount(HttpServletRequest request) {
+        ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
         User user = userRepository.findById(userId).orElse(null);
 
         if (user == null)
@@ -70,11 +69,17 @@ public class ProfileServiceImpl {
 
         profileRepository.deleteById(user.getAdditionalDetails().getId());
 
-        for (String courseId : user.getCourses()) {
-            courseRepository.updateStudentUnenroll(courseId, userId);
+        // Remove user from enrolled courses
+        for (Course course : user.getCourses()) {
+            course.getStudentsEnrolled().remove(user);
+            courseRepository.save(course);
         }
 
-        courseProgressRepository.deleteByUserId(userId);
+        // Delete course progress records for this user
+        courseProgressRepository.findAll().stream()
+                .filter(progress -> progress.getUserId().equals(user))
+                .forEach(courseProgressRepository::delete);
+
         userRepository.deleteById(userId);
 
         return ResponseEntity.ok(Map.of(
@@ -82,10 +87,9 @@ public class ProfileServiceImpl {
                 "message", "User deleted successfully"));
     }
 
-
-    public ResponseEntity<?> getAllUserDetails(HttpServletRequest request) {
-        String userId = request.getUserPrincipal().getName();
-        User user = userRepository.findByIdWithProfile(userId)
+    public ResponseEntity<Map<String, Object>> getAllUserDetails(HttpServletRequest request) {
+        ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
         return ResponseEntity.ok(Map.of(
@@ -94,27 +98,31 @@ public class ProfileServiceImpl {
                 "data", user));
     }
 
+    public ResponseEntity<Map<String, Object>> updateDisplayPicture(MultipartFile file, HttpServletRequest request) {
+        ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
 
-    public ResponseEntity<?> updateDisplayPicture(MultipartFile file, HttpServletRequest request) {
-        String userId = request.getUserPrincipal().getName();
-        String url = cloudinaryUtils.uploadImage(file, 1000, 1000);
+        try {
+            String url = cloudinaryService.uploadImage(file, "profile_pictures");
+            User user = userRepository.findById(userId).orElseThrow();
+            user.setImage(url);
+            userRepository.save(user);
 
-        User user = userRepository.findById(userId).orElseThrow();
-        user.setImage(url);
-        userRepository.save(user);
-
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Image Updated successfully",
-                "data", user));
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Image Updated successfully",
+                    "data", user));
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Failed to upload image: " + e.getMessage()));
+        }
     }
 
+    public ResponseEntity<Map<String, Object>> getEnrolledCourses(HttpServletRequest request) {
+        ObjectId userId = new ObjectId(request.getUserPrincipal().getName());
+        User user = userRepository.findById(userId).orElseThrow();
 
-    public ResponseEntity<?> getEnrolledCourses(HttpServletRequest request) {
-        String userId = request.getUserPrincipal().getName();
-        User user = userRepository.findEnrolledCourses(userId).orElseThrow();
-
-        List<Course> updatedCourses = user.getCourses().stream().map(course -> {
+        List<Map<String, Object>> updatedCourses = user.getCourses().stream().map(course -> {
             int totalSeconds = course.getCourseContent().stream()
                     .flatMap(sec -> sec.getSubSection().stream())
                     .mapToInt(ss -> Integer.parseInt(ss.getTimeDuration()))
@@ -123,31 +131,40 @@ public class ProfileServiceImpl {
             int totalSubSections = course.getCourseContent().stream()
                     .mapToInt(sec -> sec.getSubSection().size()).sum();
 
-            int completed = courseProgressRepository.findCompletedCount(course.getId(), userId);
+            // Count completed videos for this user
+            long completed = courseProgressRepository.findAll().stream()
+                    .filter(progress -> progress.getCourseID().equals(course) && progress.getUserId().equals(user))
+                    .mapToLong(progress -> progress.getCompletedVideos().size())
+                    .sum();
+
             double percentage = totalSubSections == 0 ? 100.0 : ((double) completed / totalSubSections) * 100.0;
 
-            course.setTotalDuration(DurationUtils.convertSecondsToDuration(totalSeconds));
-            course.setProgressPercentage(Math.round(percentage * 100.0) / 100.0);
-            return course;
-        }).collect(Collectors.toList());
+            return Map.of(
+                    "course", course,
+                    "totalDuration", DurationUtils.convertSecondsToDuration(totalSeconds),
+                    "progressPercentage", Math.round(percentage * 100.0) / 100.0
+            );
+        }).toList();
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "data", updatedCourses));
     }
 
+    public ResponseEntity<Map<String, Object>> instructorDashboard(HttpServletRequest request) {
+        ObjectId instructorId = new ObjectId(request.getUserPrincipal().getName());
+        List<Course> courses = courseRepository.findAll().stream()
+                .filter(course -> course.getInstructor().getId().equals(instructorId))
+                .toList();
 
-    public ResponseEntity<?> instructorDashboard(HttpServletRequest request) {
-        String instructorId = request.getUserPrincipal().getName();
-        List<Course> courses = courseRepository.findByInstructor(instructorId);
-
-        List<Map<String, Object>> dashboardData = courses.stream().map(course -> Map.of(
-                "_id", course.getId(),
-                "courseName", course.getCourseName(),
-                "courseDescription", course.getCourseDescription(),
-                "totalStudentsEnrolled", course.getStudentsEnrolled().size(),
-                "totalAmountGenerated", course.getStudentsEnrolled().size() * course.getPrice()))
-                .collect(Collectors.toList());
+        List<Map<String, Object>> dashboardData = courses.stream()
+                .map(course -> Map.<String, Object>of(
+                        "_id", course.getId(),
+                        "courseName", course.getCourseName(),
+                        "courseDescription", course.getCourseDescription(),
+                        "totalStudentsEnrolled", course.getStudentsEnrolled().size(),
+                        "totalAmountGenerated", course.getStudentsEnrolled().size() * course.getPrice()))
+                .toList();
 
         return ResponseEntity.ok(Map.of("courses", dashboardData));
     }
