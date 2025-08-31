@@ -19,3 +19,11 @@ spring:
           auth: true
           starttls:
             enable: true
+cloudinary:
+  cloud_name: ${CLOUD_NAME}
+  api_key: ${API_KEY}
+  api_secret: ${API_SECRET}
+
+jwt:
+  secret: "${JWT_SECRET:myVerySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm2024SecureTokenGeneration}"
+  expiration: 86400000
