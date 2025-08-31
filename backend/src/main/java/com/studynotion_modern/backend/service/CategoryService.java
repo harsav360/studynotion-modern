@@ -1,11 +1,11 @@
 package com.studynotion_modern.backend.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.studynotion_modern.backend.dtos.CategoryRequestDto;
+import com.studynotion_modern.backend.repository.CourseRepository;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import com.studynotion_modern.backend.dtos.CategoryPageResponseDto;
@@ -20,8 +20,21 @@ import lombok.RequiredArgsConstructor;
 public class CategoryService {
 
         private final CategoryRepository categoryRepository;
+        private final CourseRepository courseRepository;
 
-        public void createCategory(Category category) {
+        public void createCategory(CategoryRequestDto categoryRequest) {
+                Category category = new Category();
+                category.setName(categoryRequest.getName());
+                category.setDescription(categoryRequest.getDescription());
+                List<Course> courses = new ArrayList<>();
+                if (!categoryRequest.getCourseIds().isEmpty()) {
+                        // Get the corresponding course for each course id
+                        courses = categoryRequest.getCourseIds().stream()
+                                .map(courseId -> courseRepository.findById(new ObjectId(courseId))
+                                        .orElseThrow(() -> new NoSuchElementException("Course not found with ID: " + courseId)))
+                                .collect(Collectors.toList());
+                }
+                category.setCourses(courses);
                 categoryRepository.save(category);
         }
 
@@ -29,15 +42,9 @@ public class CategoryService {
                 return categoryRepository.findAll();
         }
 
-        public CategoryPageResponseDto getCategoryPageDetails(Long categoryId) {
+        public CategoryPageResponseDto getCategoryPageDetails(String categoryId) {
 
-                /*
-                 * Future Steps - Create a categorydto and then build it using the below
-                 * category,and
-                 * Right now I am using Category field in CategoryPageResponseDto, also update
-                 * it
-                 */
-                Category selectedCategory = categoryRepository.findById(categoryId)
+                Category selectedCategory = categoryRepository.findById(new ObjectId(categoryId))
                                 .orElseThrow(() -> new NoSuchElementException("Category not found"));
 
                 List<Course> publishedCourses = selectedCategory.getCourses().stream()
@@ -49,7 +56,7 @@ public class CategoryService {
                 }
 
                 // Get a different random category
-                List<Category> otherCategories = categoryRepository.findByIdNot(categoryId);
+                List<Category> otherCategories = categoryRepository.findByIdNot(new ObjectId(categoryId));
                 Category differentCategory = null;
                 if (!otherCategories.isEmpty()) {
                         Random rand = new Random();

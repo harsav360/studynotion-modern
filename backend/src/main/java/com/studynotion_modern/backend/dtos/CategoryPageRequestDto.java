@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class CategoryPageRequestDto {
 
-    private Long categoryId;
+    private String categoryId;
 }

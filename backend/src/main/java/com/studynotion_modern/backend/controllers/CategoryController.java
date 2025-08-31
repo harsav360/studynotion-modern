@@ -2,6 +2,7 @@ package com.studynotion_modern.backend.controllers;
 
 import java.util.List;
 
+import com.studynotion_modern.backend.dtos.CategoryRequestDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +26,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<ApiResponseDto> createCategory(@RequestBody Category category) {
+    public ResponseEntity<ApiResponseDto> createCategory(@RequestBody CategoryRequestDto category) {
         if (category.getName() == null || category.getName().isEmpty()) {
             return ResponseEntity.badRequest().body(new ApiResponseDto(false, "All fields are required"));
         }
