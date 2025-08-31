@@ -82,7 +82,7 @@ public class PaymentService {
         }
     }
 
-    public ResponseEntity<?> sendPaymentSuccessEmail(String userId, String orderId, String paymentId, int amount) {
+    public ResponseEntity<?> sendPaymentSuccessEmail(String userId, String orderId, String paymentId, double amount) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(400).body(Map.of("success", false, "message", "User not found"));

@@ -1,5 +1,6 @@
 package com.studynotion_modern.backend.service;
 
+import com.studynotion_modern.backend.utils.EmailTemplates;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
@@ -21,7 +22,13 @@ public class MailService {
     private String from;
 
     public void sendOtp(String email, String otp) {
-        // logic to send otp
+        try {
+            String subject = "Verify Your Email - StudyNotion OTP";
+            String htmlBody = EmailTemplates.buildOtpEmailTemplate(otp);
+            sendMail(email, subject, htmlBody);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send OTP email to: " + email, e);
+        }
     }
 
     public void sendMail(String to, String subject, String htmlBody) throws MessagingException {

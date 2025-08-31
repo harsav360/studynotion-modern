@@ -1,5 +1,7 @@
 package com.studynotion_modern.backend.controllers;
 
+import com.studynotion_modern.backend.dtos.PaymentEmailRequestDto;
+import com.studynotion_modern.backend.dtos.PaymentVerifyRequestDto;
 import com.studynotion_modern.backend.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 // PaymentController.java
 @RestController
@@ -25,17 +28,17 @@ public class PaymentController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyPayment(@RequestBody PaymentVerifyRequest request, Principal principal) {
+    public ResponseEntity<?> verifyPayment(@RequestBody PaymentVerifyRequestDto request, Principal principal) {
         return paymentService.verifyPayment(
-                request.getRazorpay_order_id(),
-                request.getRazorpay_payment_id(),
-                request.getRazorpay_signature(),
+                request.getRazorpayOrderId(),
+                request.getRazorpayPaymentId(),
+                request.getRazorpaySignature(),
                 request.getCourses(),
                 principal.getName());
     }
 
     @PostMapping("/success-email")
-    public ResponseEntity<?> sendSuccessMail(@RequestBody PaymentEmailRequest request, Principal principal) {
+    public ResponseEntity<?> sendSuccessMail(@RequestBody PaymentEmailRequestDto request, Principal principal) {
         return paymentService.sendPaymentSuccessEmail(
                 principal.getName(),
                 request.getOrderId(),

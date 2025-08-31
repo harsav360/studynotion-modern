@@ -5,10 +5,8 @@ import lombok.Data;
 @Data
 @lombok.EqualsAndHashCode(callSuper = true)
 public class OtpResponseDto extends ApiResponseDto {
-    private String otp;
 
-    public OtpResponseDto(boolean success, String message, String otp) {
+    public OtpResponseDto(boolean success, String message) {
         super(success, message);
-        this.otp = otp;
     }
 }
